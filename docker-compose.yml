@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  items-api-service:
+    container_name: items_api_container
+    build: .
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+      - /item-list-api/node_modules
+    command: npm run start:dev
+    environment:
+      - DB_TYPE=postgres
+      - PG_HOST=items_db_container
+      - PG_USER=items-postgres
+      - PG_PASSWORD=items-postgres
+      - PG_DB=items-postgres
+      - PG_PORT=5432
+    depends_on:
+      - items-db-service
+  items-db-service:
+    container_name: items_db_container
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=items-postgres
+      - POSTGRES_PASSWORD=items-postgres
+      - POSTGRES_POSTGRES=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata: { }
