@@ -1,10 +1,24 @@
-export type PaginationParamsDto = {
-  pageIndex: number;
-  pageSize: number;
+import { ApiPropertyOptional, ApiResponseProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+
+export class PaginationParamsDto {
+  @ApiPropertyOptional()
+  pageIndex?: number;
+  @ApiPropertyOptional()
+  pageSize?: number;
 }
 
-export type PaginationDto<T> = {
+export class PaginationDto<T> extends PaginationParamsDto {
+
+  @ApiResponseProperty()
   data: T;
+
+  @ApiResponseProperty()
   total: number;
-} & PaginationParamsDto
+
+  @ApiResponseProperty()
+  pageIndex?: number;
+
+  @ApiResponseProperty()
+  pageSize?: number;
+}
 
