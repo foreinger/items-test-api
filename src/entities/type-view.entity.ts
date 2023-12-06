@@ -10,6 +10,7 @@ import { Type } from './type.entity';
       .leftJoin('type.items', 'item')
       .select(['type.id as id', 'type.name as name', 'COUNT(item) as itemCount'])
       .groupBy('type.id')
+      .orderBy({id: 'ASC'})
 })
 
 export class TypeStatistic {
