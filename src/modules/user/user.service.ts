@@ -1,28 +1,30 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Not, Repository } from 'typeorm';
-import { User } from '../../entities/user.entity';
+import { UserEntity } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RegistrationDto } from '../auth/dto/registration.dto';
+import { RegistrationFormDto } from '../auth/dto/registration-form-dto';
 import * as bcrypt from 'bcrypt';
-import { CustomHttpException } from '../../core/models/error.models';
-import { AuthErrors } from '../auth/enums/auth.enums';
-import { Pagination, PaginationParams } from '../../core/models/pagination.models';
-import { PaginationParamsDto } from '../../core/dto/pagination.dto';
+import { CustomHttpException, ValidationError } from '../../core/models/custom-http-exception.model';
+import { ErrorTypes } from '../../core/enums/error-types.enum';
+import { ID } from '../../core/types/alias.types';
+import { PaginationDto } from '../../core/dto/pagination.dto';
+import { PaginationParamsDto } from '../../core/dto/pagination-params.dto';
+import { UserDto } from './dto/user.dto';
+import { ResponseDto } from '../../core/dto/response.dto';
 
 @Injectable()
 export class UserService {
-
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>
-  ) {
-  }
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
+  ) {}
 
-  public async createUser(dto: RegistrationDto): Promise<User> {
-    const user = await this.findOne(dto.username);
+  public async createUser(dto: RegistrationFormDto): Promise<UserEntity> {
+    const user = await this.findOneByUsername(dto.username);
 
     if (user) {
-      throw new CustomHttpException({ errorType: AuthErrors.userAlreadyExist }, HttpStatus.CONFLICT);
+      const validation: ValidationError[] = [{ property: 'username', errorType: ErrorTypes.userAlreadyExist }];
+      throw new CustomHttpException(ErrorTypes.invalidData, HttpStatus.CONFLICT, { validation });
     }
 
     dto.password = await bcrypt.hash(dto.password, 10);
@@ -30,24 +32,30 @@ export class UserService {
     return this.userRepository.save(dto);
   }
 
-  public findOne(username: string): Promise<User> {
-    return this.userRepository.findOneBy({ username });
+  public findOneByUsername(username: string): Promise<UserEntity> {
+    return this.userRepository.findOne({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        password: true,
+      },
+    });
   }
 
-  public findOneById(id: number): Promise<User> {
-    return this.userRepository.findOneBy({ id });
+  public async findMeById(id: ID): Promise<ResponseDto<UserEntity>> {
+    const user = await this.userRepository.findOneBy({ id });
+    return new ResponseDto(user);
   }
 
-  public async findAll(dto: PaginationParamsDto, myID: number): Promise<Pagination<User>> {
-    const paginationParams = new PaginationParams(dto);
-
+  public async findAll(dto: PaginationParamsDto, myID: ID): Promise<PaginationDto<UserDto>> {
     const [data, total] = await this.userRepository.findAndCount({
       where: { id: Not(myID) },
       order: { id: 'ASC' },
-      skip: paginationParams.pageIndex * paginationParams.pageSize,
-      take: paginationParams.pageSize
+      skip: dto.pageIndex * dto.pageSize,
+      take: dto.pageSize,
     });
 
-    return new Pagination<User>({ data, total, ...paginationParams });
+    return new PaginationDto<UserDto>({ data, total, ...dto });
   }
 }

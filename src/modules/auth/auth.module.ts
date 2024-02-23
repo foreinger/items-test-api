@@ -4,21 +4,14 @@ import { AuthController } from './auth.controller';
 import { UserModule } from '../user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenService } from './services/token.service';
-import * as process from 'process';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Global()
 @Module({
-  imports: [
-    JwtModule.register({
-      global: true,
-      secret: process.env.SECRET
-      // signOptions: { expiresIn: '10s' }
-    }),
-    UserModule
-  ],
-  providers: [AuthService, TokenService],
+  imports: [PassportModule.register({}), JwtModule.register({}), UserModule],
+  providers: [AuthService, TokenService, JwtStrategy],
   controllers: [AuthController],
-  exports: [AuthService, TokenService]
+  exports: [AuthService, TokenService, JwtStrategy],
 })
-export class AuthModule {
-}
+export class AuthModule {}

@@ -1,60 +1,68 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { Item } from '../../entities/item.entity';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ItemEntity } from '../../entities/item.entity';
 import { ItemsService } from './items.service';
-import { CreateItemDto, UpdateItemDto } from './dto/item.dto';
-import { Pagination } from '../../core/models/pagination.models';
-import { PaginationParamsDto } from '../../core/dto/pagination.dto';
-import { TypeStatistic } from '../../entities/type-view.entity';
-import { AuthGuard } from '../auth/auth.guard';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { TypeEntity } from '../../entities/type.entity';
+import { CreateItemDto } from './dto/item-create.dto';
+import { UpdateItemDto } from './dto/item-update.dto';
+import { AutocompleteDto } from './dto/type-autocomplete.dto';
+import { TypeStatisticDto } from './dto/type-statistic.dto';
+import { ResponseDto } from '../../core/dto/response.dto';
+import { PaginationDto } from '../../core/dto/pagination.dto';
+import { PaginationParamsDto } from '../../core/dto/pagination-params.dto';
+import { ItemDto } from './dto/item.dto';
+import { ApiArrayResponse, ApiErrorResponse, ApiObjectResponse, ApiPaginatedResponse } from '../../core/decorators/swagger.decorator';
+import { ItemDeleteDto } from './dto/item-delete.dto';
+import { AuthHttpGuard } from '../auth/guards/auth-http-guard.service';
+import { HttpTokenData } from '../../core/decorators/token-data.decorator';
+import { TokenPayload } from '../auth/types/auth.types';
 
 @ApiBearerAuth()
 @ApiTags('items')
-@UseGuards(AuthGuard)
+@UseGuards(AuthHttpGuard)
 @Controller('items')
 export class ItemsController {
+  constructor(private itemsService: ItemsService) {}
 
-  constructor(
-    private itemsService: ItemsService
-  ) {
-  }
-
-  @ApiOkResponse({ type: Pagination<Item> })
   @Get()
-  public getItems(@Query() dto: PaginationParamsDto): Promise<Pagination<Item>> {
+  @ApiPaginatedResponse(ItemDto)
+  @ApiErrorResponse()
+  public getItems(@Query() dto: PaginationParamsDto): Promise<PaginationDto<ItemDto>> {
     return this.itemsService.getItems(dto);
   }
 
-
-  @ApiOkResponse({ type: Item })
   @Post()
-  @UsePipes(new ValidationPipe())
-  public createItem(@Body() body: CreateItemDto): Promise<Item> {
-    return this.itemsService.createItem(body);
+  @ApiObjectResponse(ItemDto)
+  @ApiErrorResponse()
+  public createItem(@Body() body: CreateItemDto, @HttpTokenData() tokenPayload: TokenPayload): Promise<ResponseDto<ItemDto>> {
+    return this.itemsService.createItem(body, tokenPayload);
   }
 
-  @ApiOkResponse({ type: Item })
   @Patch()
-  public updateItem(@Body() body: UpdateItemDto): Promise<Item> {
+  @ApiObjectResponse(ItemDto)
+  @ApiErrorResponse()
+  public updateItem(@Body() body: UpdateItemDto): Promise<ResponseDto<ItemDto>> {
     return this.itemsService.updateItem(body);
   }
 
-  @ApiOkResponse({ type: Item })
   @Delete(':id')
-  public deleteItem(@Param() params: { id: number }): Promise<Item> {
+  @ApiObjectResponse(ItemDto)
+  @ApiErrorResponse()
+  public deleteItem(@Param() params: ItemDeleteDto): Promise<ResponseDto<ItemDto>> {
     return this.itemsService.deleteItem(params.id);
   }
 
-  @ApiOkResponse({ type: Pagination <TypeStatistic> })
-  @Get('statistic')
-  public typesStatistic(@Query() query: PaginationParamsDto): Promise<Pagination<TypeStatistic>> {
-    return this.itemsService.getStatistic(query);
+  @Get('types-autocomplete')
+  @ApiArrayResponse(TypeEntity)
+  @ApiErrorResponse()
+  public typesAutocomplete(@Query() query: AutocompleteDto): Promise<ResponseDto<TypeEntity[]>> {
+    return this.itemsService.getTypesAutocomplete(query.input);
   }
 
-  @ApiOkResponse({ type: Item, isArray: true })
-  @Post('mocks')
-  public createMocks(@Body() { quantity }): Promise<Item[]> {
-    return this.itemsService.generateMockItems(quantity);
+  @Get('statistic')
+  @ApiPaginatedResponse(TypeStatisticDto)
+  @ApiErrorResponse()
+  public typesStatistic(@Query() query: PaginationParamsDto): Promise<PaginationDto<TypeStatisticDto>> {
+    return this.itemsService.getStatistic(query);
   }
 }

@@ -1,33 +1,33 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { Pagination } from '../../core/models/pagination.models';
-import { User } from '../../entities/user.entity';
-import { PaginationParamsDto } from '../../core/dto/pagination.dto';
 import { HttpTokenData } from '../../core/decorators/token-data.decorator';
 import { TokenPayload } from '../auth/types/auth.types';
+import { PaginationDto } from '../../core/dto/pagination.dto';
+import { PaginationParamsDto } from '../../core/dto/pagination-params.dto';
+import { ApiErrorResponse, ApiObjectResponse, ApiPaginatedResponse } from '../../core/decorators/swagger.decorator';
+import { UserDto } from './dto/user.dto';
+import { ResponseDto } from '../../core/dto/response.dto';
+import { AuthHttpGuard } from '../auth/guards/auth-http-guard.service';
 
 @ApiBearerAuth()
 @ApiTags('users')
-@UseGuards(AuthGuard)
+@UseGuards(AuthHttpGuard)
 @Controller('users')
 export class UserController {
-
-  constructor(
-    private userService: UserService
-  ) {
-  }
+  constructor(private userService: UserService) {}
 
   @Get()
-  @ApiOkResponse({ type: Pagination<User> })
-  public async getAll(@Query() dto: PaginationParamsDto, @HttpTokenData() tokenPayload: TokenPayload): Promise<Pagination<User>> {
+  @ApiPaginatedResponse(UserDto)
+  @ApiErrorResponse()
+  public async getAll(@Query() dto: PaginationParamsDto, @HttpTokenData() tokenPayload: TokenPayload): Promise<PaginationDto<UserDto>> {
     return this.userService.findAll(dto, tokenPayload.sub);
   }
 
   @Get('me')
-  @ApiOkResponse({ type: User })
-  public async getMe(@HttpTokenData() data: TokenPayload): Promise<User> {
-    return this.userService.findOneById(data.sub);
+  @ApiObjectResponse(UserDto)
+  @ApiErrorResponse()
+  public async getMe(@HttpTokenData() data: TokenPayload): Promise<ResponseDto<UserDto>> {
+    return this.userService.findMeById(data.sub);
   }
 }

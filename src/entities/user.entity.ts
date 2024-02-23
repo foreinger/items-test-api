@@ -1,23 +1,25 @@
-import { Column, Entity, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Exclude } from 'class-transformer';
-import { Room } from './room.entity';
+import { RoomEntity } from './room.entity';
 import { BaseEntity } from './base.entity';
+import { ItemEntity } from './item.entity';
 
 @Entity('users')
-export class User extends BaseEntity {
-
+export class UserEntity extends BaseEntity {
   @Column({ unique: true })
   public username: string;
 
-  @ManyToMany(() => Room, (room) => room.members)
-  rooms: Room[];
+  @ManyToMany(() => RoomEntity, (room) => room.members, { cascade: true, onDelete: 'CASCADE' })
+  public rooms: RoomEntity[];
 
-  @Column()
-  @Exclude({ toPlainOnly: true })
-  private password: string;
+  @Column({ select: false })
+  public password: string;
 
-  async comparePassword(attempt: string): Promise<boolean> {
+  @OneToMany(() => ItemEntity, (item: ItemEntity) => item.createdBy, { cascade: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'item_id' })
+  public items: ItemEntity[];
+
+  public async comparePassword(attempt: string): Promise<boolean> {
     return bcrypt.compare(attempt, this.password);
   }
 }

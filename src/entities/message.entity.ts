@@ -1,16 +1,16 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Room } from './room.entity';
+import { RoomEntity } from './room.entity';
+import { ID } from '../core/types/alias.types';
 
-@Entity()
-export class Message extends BaseEntity {
+@Entity({ name: 'messages' })
+export class MessageEntity extends BaseEntity {
+  @Column()
+  public text: string;
 
   @Column()
-  text: string;
+  public senderId: ID;
 
-  @Column()
-  senderId: number;
-
-  @ManyToOne(() => Room, (room) => room.messages)
-  room: Room;
+  @ManyToOne(() => RoomEntity, (room) => room.messages)
+  public room: RoomEntity;
 }

@@ -2,15 +2,14 @@ import { Module } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { ItemsController } from './items.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Item } from '../../entities/item.entity';
-import { Type } from '../../entities/type.entity';
-import { TypeStatistic } from '../../entities/type-view.entity';
+import { ItemEntity } from '../../entities/item.entity';
+import { TypeEntity } from '../../entities/type.entity';
+import { UserEntity } from '../../entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item, Type, TypeStatistic])],
+  imports: [TypeOrmModule.forFeature([ItemEntity, TypeEntity, UserEntity])],
   providers: [ItemsService],
   controllers: [ItemsController],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule],
 })
-export class ItemsModule {
-}
+export class ItemsModule {}

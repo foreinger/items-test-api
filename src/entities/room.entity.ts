@@ -1,19 +1,20 @@
 import { Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne } from 'typeorm';
-import { User } from './user.entity';
+import { UserEntity } from './user.entity';
 import { BaseEntity } from './base.entity';
-import { Message } from './message.entity';
+import { MessageEntity } from './message.entity';
 
-@Entity()
-export class Room extends BaseEntity {
-
-  @ManyToMany(() => User, (user) => user.rooms)
+@Entity({ name: 'rooms' })
+export class RoomEntity extends BaseEntity {
+  @ManyToMany(() => UserEntity, (user) => user.rooms, {
+    orphanedRowAction: 'nullify',
+  })
   @JoinTable()
-  public members: User[];
+  public members: UserEntity[];
 
-  @OneToMany(() => Message, (msg) => msg.room)
-  messages: Message[];
+  @OneToMany(() => MessageEntity, (msg) => msg.room)
+  public messages: MessageEntity[];
 
-  @OneToOne(() => Message, { nullable: true })
+  @OneToOne(() => MessageEntity, { nullable: true })
   @JoinColumn()
-  lastMessage: Message | null;
+  public lastMessage: MessageEntity | null;
 }

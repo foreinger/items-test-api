@@ -1,34 +1,12 @@
-import { IsNumber, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { ApiPropertyOptional } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ItemEntity } from '../../../entities/item.entity';
+import { TypeEntity } from '../../../entities/type.entity';
+import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { TypeDto } from './type.dto';
 
-export class CreateItemDto {
-
+export class ItemDto extends ItemEntity {
   @ApiProperty()
-  @IsString()
-  name: string;
+  public name: string;
 
-  @ApiProperty()
-  @IsString()
-  type: string;
-}
-
-
-export class UpdateItemDto {
-
-  @ApiProperty()
-  @IsNumber()
-  id: number;
-
-  @ApiPropertyOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  type?: string;
-}
-
-export class TypeDto {
-  name: string;
+  @ApiProperty({ type: () => TypeDto })
+  public type: TypeEntity;
 }

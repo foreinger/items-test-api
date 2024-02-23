@@ -1,19 +1,13 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Item } from './item.entity';
+import { Column, Entity, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { ItemEntity } from './item.entity';
 
 @Entity({ name: 'types' })
-export class Type extends BaseEntity {
-  @ApiProperty()
-  @PrimaryGeneratedColumn()
-  public id: number;
-
-  @ApiProperty()
+export class TypeEntity extends BaseEntity {
   @Column({ unique: true })
   public name: string;
 
-  @ApiProperty()
-  @OneToMany(() => Item, (item) => item.type)
-  public items: Item[];
+  @OneToMany(() => ItemEntity, (item) => item.type, { cascade: true })
+  @JoinColumn({ name: 'item_id' })
+  public items: ItemEntity[];
 }

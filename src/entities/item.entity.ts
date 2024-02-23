@@ -1,18 +1,22 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { Type } from './type.entity';
+import { TypeEntity } from './type.entity';
 import { BaseEntity } from './base.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { UserEntity } from './user.entity';
 
 @Entity({ name: 'items' })
-export class Item extends BaseEntity {
-  @ApiProperty()
+export class ItemEntity extends BaseEntity {
   @Column()
-  name: string;
+  public name: string;
 
-  @ApiProperty()
-  @ManyToOne(
-    () => Type, (type) => type.items,
-    { onDelete: 'CASCADE', onUpdate: 'CASCADE', cascade: true }
-  )
-  type: Type;
+  @ManyToOne(() => TypeEntity, (type: TypeEntity) => type.items, {
+    onDelete: 'CASCADE',
+    orphanedRowAction: 'delete',
+  })
+  public type: TypeEntity;
+
+  @ManyToOne(() => UserEntity, (user: UserEntity) => user.items, {
+    onDelete: 'CASCADE',
+    orphanedRowAction: 'delete',
+  })
+  public createdBy: UserEntity;
 }
