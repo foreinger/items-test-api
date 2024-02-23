@@ -26,6 +26,7 @@ export class ChatService {
     const rooms = await this.roomRepository
       .createQueryBuilder('room')
       .addSelect(['room.created_at'])
+      .addSelect(['room.updated_at'])
       .innerJoin('room.members', 'user')
       .where('user.id = :userId', { userId })
       .leftJoinAndSelect('room.members', 'members')
